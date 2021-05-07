@@ -1,6 +1,6 @@
 using BepInEx;
 using HarmonyLib;
-using UnityEngine;
+using System;
 
 namespace KoikatuVRAssistPlugin
 {
@@ -9,7 +9,7 @@ namespace KoikatuVRAssistPlugin
 	{
 		public KoikatuVRAssistPlugin()
 		{
-			if (Application.dataPath.EndsWith("KoikatuVR_Data"))
+			if (Type.GetType("VRHScene, Assembly-CSharp") != null)
 			{
 				Logger.LogMessage("Installs Hook");
 				Harmony.CreateAndPatchAll(typeof(GripMoveHook), "KoikatuVRAssistPlugin.GripMoveHook");
