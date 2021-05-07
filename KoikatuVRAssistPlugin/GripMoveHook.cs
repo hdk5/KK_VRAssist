@@ -1,17 +1,10 @@
 using System;
-using BepInEx;
-using Harmony;
+using HarmonyLib;
 
 namespace KoikatuVRAssistPlugin
 {
 	public static class GripMoveHook
 	{
-		public static void InstallHook()
-		{
-			BepInLogger.Log("Installs Hook");
-			HarmonyInstance.Create("KoikatuVRAssistPlugin.GripMoveHook").PatchAll(typeof(GripMoveHook));
-		}
-
 		[HarmonyPostfix]
 		[HarmonyPatch(typeof(VRHScene), "ViveCntrollerMove", new Type[] { }, null)]
 		public static void ViveControllerMovePostHook(VRHScene __instance, bool __result)

@@ -1,4 +1,5 @@
 using BepInEx;
+using HarmonyLib;
 using UnityEngine;
 
 namespace KoikatuVRAssistPlugin
@@ -10,11 +11,12 @@ namespace KoikatuVRAssistPlugin
 		{
 			if (Application.dataPath.EndsWith("KoikatuVR_Data"))
 			{
-				GripMoveHook.InstallHook();
+				Logger.LogMessage("Installs Hook");
+				Harmony.CreateAndPatchAll(typeof(GripMoveHook), "KoikatuVRAssistPlugin.GripMoveHook");
 			}
 			else
 			{
-				BepInLogger.Log("Not KoikatuVR. Shutdown KoikatuVRAssistPlugin.");
+				Logger.LogMessage("Not KoikatuVR. Shutdown KoikatuVRAssistPlugin.");
 			}
 		}
 	}
