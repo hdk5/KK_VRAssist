@@ -4,9 +4,13 @@ using System;
 
 namespace KoikatuVRAssistPlugin
 {
-	[BepInPlugin("B0EAC71B-76A9-4D0E-A26F-CB3FB853D78A", "KoikatuVRAssistPlugin", "1.1.0")]
+	[BepInPlugin(GUID, PluginName, Version)]
 	public class KoikatuVRAssistPlugin : BaseUnityPlugin
 	{
+		public const string GUID = "KK_KoikatuVRAssistPlugin";
+		public const string Version = "1.1.0";
+		public const string PluginName = "KoikatuVRAssistPlugin";
+
 		public KoikatuVRAssistPlugin()
 		{
 			if (Type.GetType("VRHScene, Assembly-CSharp") != null)
