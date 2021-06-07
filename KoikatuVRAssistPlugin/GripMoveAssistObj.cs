@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using HarmonyLib;
 
 namespace KoikatuVRAssistPlugin
 {
@@ -9,6 +10,8 @@ namespace KoikatuVRAssistPlugin
 		private Transform transViveCntroller;
 
 		private VRHandCtrl handCtrl;
+
+		private GameObject[] lstObjMainCanvas = new GameObject[2];
 
 		private Vector3 prevVRCameraPos;
 
@@ -24,6 +27,8 @@ namespace KoikatuVRAssistPlugin
 
 		private GameObject[] canvasMoveMarker = new GameObject[2];
 
+		private static FieldInfo f_action = typeof(VRHandCtrl).GetField("action", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
 		private float[] gripDownTime = new float[2]
 		{
 			float.MaxValue,
@@ -36,38 +41,50 @@ namespace KoikatuVRAssistPlugin
 			float.MinValue
 		};
 
-		private static FieldInfo f_action = typeof(VRHandCtrl).GetField("action", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-		private static FieldInfo f_lstObjMainCanvas = typeof(VRHScene).GetField("lstObjMainCanvas", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-		private static FieldInfo f_device = typeof(VRViveController).GetField("device", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-		private static FieldInfo f_lstProc = typeof(VRHScene).GetField("lstProc", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-		private static FieldInfo f_flags = typeof(HActionBase).GetField("flags", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
 		private const float floatingMenuDelta = 1.5f;
 
 		private const float speedRate = 2f;
+
+
+		public static GripMoveAssistObj GetOrAddGripMoveAssistObj(VRHScene scene)
+		{
+			var gripMoveAssistObj = scene.gameObject.GetComponent<GripMoveAssistObj>();
+			if (gripMoveAssistObj != null)
+				return gripMoveAssistObj;
+			else
+				gripMoveAssistObj = scene.gameObject.AddComponent<GripMoveAssistObj>();
+
+			for (int deviceIndex = 0; deviceIndex < 2; deviceIndex++)
+			{
+				gripMoveAssistObj.lstObjMainCanvas[deviceIndex] = Traverse.Create(scene).Field("lstObjMainCanvas").GetValue<List<GameObject>>()[deviceIndex];
+				if (gripMoveAssistObj.lstObjMainCanvas[deviceIndex] == null)
+				{
+					Destroy(gripMoveAssistObj);
+					throw new MemberNotFoundException("lstObjMainCanvas is null when attempting to initialize GripMoveAssistObj");
+				}		
+			}
+
+			return gripMoveAssistObj;
+		}
 
 		public void Start()
 		{
 			gameObject.GetComponent<VRHScene>().managerVR.scrCamera.camera.nearClipPlane = 0.001f;
 		}
 
-		public void PerformGripMove(VRHScene __instance)
+		public void PerformGripMove(VRHScene scene)
 		{
-			if (__instance.managerVR.scrControllerManager.IsPressDown(VRViveController.EViveButtonKind.Trigger, -1, out int deviceIndex))
+			if (scene.managerVR.scrControllerManager.IsPressDown(VRViveController.EViveButtonKind.Trigger, -1, out int deviceIndex))
 			{
-				VRViveController vRViveController = __instance.managerVR.scrControllerManager.lstController[deviceIndex];
+				VRViveController vRViveController = scene.managerVR.scrControllerManager.lstController[deviceIndex];
 				if (vRViveController.mode != 2 && vRViveController.IsSpriteOver(vRViveController.mode))
 				{
 					return;
 				}
 
 				//After the trigger is pressed, initialize the fields used to track and move the positions of the camera and controller
-				transViveCntroller = __instance.managerVR.scrControllerManager.GetTransform(deviceIndex);
-				prevVRCameraPos = __instance.managerVR.objMove.transform.position;
+				transViveCntroller = scene.managerVR.scrControllerManager.GetTransform(deviceIndex);
+				prevVRCameraPos = scene.managerVR.objMove.transform.position;
 				prevControllerPos = (!transViveCntroller) ? Vector3.zero : transViveCntroller.localPosition;
 				prevControllerRot = (!transViveCntroller) ? Quaternion.identity : transViveCntroller.localRotation;
 				posRotationCenter = transViveCntroller.position;
@@ -82,11 +99,11 @@ namespace KoikatuVRAssistPlugin
 				}
 
 				centerMarker.transform.position = transViveCntroller.position;
-				cameraTarget.transform.position = __instance.managerVR.objMove.transform.position;
-				cameraTarget.transform.rotation = __instance.managerVR.objMove.transform.rotation;
+				cameraTarget.transform.position = scene.managerVR.objMove.transform.position;
+				cameraTarget.transform.rotation = scene.managerVR.objMove.transform.rotation;
 				handCtrl = transViveCntroller.gameObject.GetComponentInChildren<VRHandCtrl>();
 			}
-			if (__instance.managerVR.scrControllerManager.IsPressUp(VRViveController.EViveButtonKind.Trigger, -1, out deviceIndex) && transViveCntroller == __instance.managerVR.scrControllerManager.GetTransform(deviceIndex))
+			if (scene.managerVR.scrControllerManager.IsPressUp(VRViveController.EViveButtonKind.Trigger, -1, out deviceIndex) && transViveCntroller == scene.managerVR.scrControllerManager.GetTransform(deviceIndex))
 			{
 				transViveCntroller = null;
 				handCtrl = null;
@@ -104,35 +121,33 @@ namespace KoikatuVRAssistPlugin
 				}
 
 				Vector3 direction = prevControllerPos - transViveCntroller.localPosition;
-				cameraTarget.transform.position = prevVRCameraPos + __instance.managerVR.objMove.transform.TransformDirection(direction);
+				cameraTarget.transform.position = prevVRCameraPos + scene.managerVR.objMove.transform.TransformDirection(direction);
 				Vector3 eulerAngles = (prevControllerRot * Quaternion.Inverse(transViveCntroller.localRotation)).eulerAngles;
 				centerMarker.transform.RotateAround(posRotationCenter, Vector3.up, eulerAngles.y);
-				__instance.managerVR.objMove.transform.position = cameraTarget.transform.position;
-				__instance.managerVR.objMove.transform.rotation = cameraTarget.transform.rotation;
+				scene.managerVR.objMove.transform.position = cameraTarget.transform.position;
+				scene.managerVR.objMove.transform.rotation = cameraTarget.transform.rotation;
 
-				prevVRCameraPos = __instance.managerVR.objMove.transform.position;
+				prevVRCameraPos = scene.managerVR.objMove.transform.position;
 				prevControllerPos = transViveCntroller.localPosition;
 				prevControllerRot = transViveCntroller.localRotation;
 			}
 		}
 
-		public void PerformFloatingMainMenu(VRHScene __instance)
+		public void PerformFloatingMainMenu(VRHScene scene)
 		{
-			VRViveControllerManager scrControllerManager = __instance.managerVR.scrControllerManager;
+			VRViveControllerManager scrControllerManager = scene.managerVR.scrControllerManager;
 			float currentTime = Time.time;
 
 			for (int deviceIndex = 0; deviceIndex < 2; deviceIndex++)
 			{
-				VRViveController vRViveController = scrControllerManager.lstController[deviceIndex];
-				SteamVR_Controller.Device device = f_device.GetValue(vRViveController) as SteamVR_Controller.Device;
-				if (device == null)
-				{
+				GameObject menuCanvas = lstObjMainCanvas[deviceIndex];
+				VRViveController vRViveController = scrControllerManager.lstController[deviceIndex];	
+				var trackedObj = vRViveController.GetComponent<SteamVR_TrackedObject>();
+				if (trackedObj.index == SteamVR_TrackedObject.EIndex.None)
 					continue;
-				}
 
-				GameObject menuCanvas = (f_lstObjMainCanvas.GetValue(__instance) as List<GameObject>)[deviceIndex];
-				bool menuFloating = menuCanvas.transform.parent == __instance.managerVR.objMove.transform;
-
+				SteamVR_Controller.Device device = SteamVR_Controller.Input((int)trackedObj.index);							
+				bool menuFloating = menuCanvas.transform.parent == scene.managerVR.objMove.transform;
 				//When grip is pressed, prepare a GameObject (canvasMoveMarker) to follow the controller, which can then be used later to update the position of the menu
 				if (scrControllerManager.IsPressDownSelectHand(VRViveController.EViveButtonKind.Grip, deviceIndex))
 				{
@@ -187,44 +202,42 @@ namespace KoikatuVRAssistPlugin
 				//If the menu is currently not detached and the time grip is held exceeds the defined threshold, detach the menu from the controller and attach it to the camera to make it floating.
 				if (gripHeldTime > floatingMenuDelta && !menuFloating)
 				{
-					menuCanvas.transform.parent = __instance.managerVR.objMove.transform;
+					menuCanvas.transform.parent = scene.managerVR.objMove.transform;
 					gripDownTime[deviceIndex] = float.MaxValue;
 				}
 			}
 		}
 
-		public void PerformScrollSpeedByTouch(VRHScene __instance)
+		public void PerformScrollSpeedByTouch(VRHScene scene)
 		{
-			VRViveControllerManager scrControllerManager = __instance.managerVR.scrControllerManager;
-			List<GameObject> menuCanvasList = f_lstObjMainCanvas.GetValue(__instance) as List<GameObject>;
-			for (int i = 0; i < 2; i++)
+			for (int deviceIndex = 0; deviceIndex < 2; deviceIndex++)
 			{
-				VRViveController controller = scrControllerManager.lstController[i];
-				SteamVR_Controller.Device device = f_device.GetValue(controller) as SteamVR_Controller.Device;
+				var trackedObj = scene.managerVR.scrControllerManager.lstController[deviceIndex].GetComponent<SteamVR_TrackedObject>();
+				if (trackedObj.index == SteamVR_TrackedObject.EIndex.None)
+					continue;
+
+				SteamVR_Controller.Device device = SteamVR_Controller.Input((int)trackedObj.index);
 
 				//When menu is floating and the touchpad/stick is being touched, translate the y axis movement of the stick to the speed gauge only if there is less than 0.5 of x axis movement to prevent unintentionally adjusting the speed gauge while moving the x axis.
-				if (device != null && menuCanvasList[i].transform.parent == __instance.managerVR.objMove.transform && device.GetTouch(4294967296uL))
+				if (device.GetTouch(4294967296uL) && lstObjMainCanvas[deviceIndex].transform.parent == scene.managerVR.objMove.transform)
 				{
 					Vector2 axis = device.GetAxis();
 					if (-0.5f < axis.x && axis.x < 0.5f)
 					{
-						ProcSpeedUpClick(__instance, axis.y);
+						ProcSpeedUpClick(scene, axis.y);
 					}
 				}
 			}
 		}
 
-		private void ProcSpeedUpClick(VRHScene __instance, float value)
+		private void ProcSpeedUpClick(VRHScene scene, float value)
 		{
-			(f_lstProc.GetValue(__instance) as List<HActionBase>).SafeProc((int)__instance.flags.mode, delegate(HActionBase proc)
+			HFlag hFlag = scene.flags;
+			if (hFlag != null)
 			{
-				HFlag hFlag = f_flags.GetValue(proc) as HFlag;
-				if (hFlag != null)
-				{
-					hFlag.speedUpClac = Vector2.zero;
-					hFlag.speedCalc = Mathf.Clamp01(hFlag.speedCalc + speedRate * value * Time.deltaTime);
-				}
-			});
+				hFlag.speedUpClac = Vector2.zero;
+				hFlag.speedCalc = Mathf.Clamp01(hFlag.speedCalc + speedRate * value * Time.deltaTime);
+			}
 		}
 	}
 }
