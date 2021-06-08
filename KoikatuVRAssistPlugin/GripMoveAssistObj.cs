@@ -165,7 +165,7 @@ namespace KoikatuVRAssistPlugin
 				}
 				//When grip is released, reset "gripDownTime" to a default value such that all calculation for the amount of time grip is held returns negative.
 				//And if the time since the last release is less than 0.5 seconds, indicating a double click, attach the menu back to the controller to end floating
-				if (scrControllerManager.IsPressUpSelectHand(VRViveController.EViveButtonKind.Grip, deviceIndex))
+				else if (scrControllerManager.IsPressUpSelectHand(VRViveController.EViveButtonKind.Grip, deviceIndex))
 				{
 					gripDownTime[deviceIndex] = float.MaxValue;
 
@@ -179,31 +179,37 @@ namespace KoikatuVRAssistPlugin
 				}
 
 				//While grip is being held
-				if (!device.GetPress(4uL))
+				if (device.GetPress(4uL))
 				{
-					continue;
-				}
-				float gripHeldTime = currentTime - gripDownTime[deviceIndex];
-				if (gripHeldTime > 0.5f)
-				{
-					//If the time since pressing down grip exceeds 0.5 seconds then make the menu visible so the use can see the menu while dragging it with the controller.
-					//If the menu is currently detached, update the menu's position to make it temporarily follow the controller's movement while remained detached.				
-					if (!menuCanvas.activeSelf)
+					//Abort if other input is detected to prevent conflict with other controller combos
+					//8589934595 is the button mask for trigger, the menu and system buttons
+					if (device.GetPress(8589934595ul) || device.GetAxis().sqrMagnitude > 0.25f)
 					{
-						menuCanvas.SetActive(value: true);
-					}
+						gripDownTime[deviceIndex] = currentTime;
+						continue;
+					}	
 					
-					if (menuFloating)
+					float gripHeldTime = currentTime - gripDownTime[deviceIndex];
+					if (gripHeldTime > 0.5f)
 					{
-						menuCanvas.transform.position = canvasMoveMarker[deviceIndex].transform.position;
-						menuCanvas.transform.rotation = canvasMoveMarker[deviceIndex].transform.rotation;
+						//If the time since pressing down grip exceeds 0.5 seconds then make the menu visible so the use can see the menu while dragging it with the controller.
+						//And if the menu is currently detached, update the menu's position to make it temporarily follow the controller's movement while remained detached.
+						if (!menuCanvas.activeSelf)
+						{
+							menuCanvas.SetActive(value: true);
+						}			
+						if (menuFloating)
+						{
+							menuCanvas.transform.position = canvasMoveMarker[deviceIndex].transform.position;
+							menuCanvas.transform.rotation = canvasMoveMarker[deviceIndex].transform.rotation;
+						}
 					}
-				}
-				//If the menu is currently not detached and the time grip is held exceeds the defined threshold, detach the menu from the controller and attach it to the camera to make it floating.
-				if (gripHeldTime > floatingMenuDelta && !menuFloating)
-				{
-					menuCanvas.transform.parent = scene.managerVR.objMove.transform;
-					gripDownTime[deviceIndex] = float.MaxValue;
+					//If the menu is currently not detached and the time grip is held exceeds the defined threshold, detach the menu from the controller and attach it to the camera to make it floating.
+					if (gripHeldTime > floatingMenuDelta && !menuFloating)
+					{
+						menuCanvas.transform.parent = scene.managerVR.objMove.transform;
+						gripDownTime[deviceIndex] = float.MaxValue;
+					}
 				}
 			}
 		}
@@ -218,8 +224,11 @@ namespace KoikatuVRAssistPlugin
 
 				SteamVR_Controller.Device device = SteamVR_Controller.Input((int)trackedObj.index);
 
-				//When menu is floating and the touchpad/stick is being touched, translate the y axis movement of the stick to the speed gauge only if there is less than 0.5 of x axis movement to prevent unintentionally adjusting the speed gauge while moving the x axis.
-				if (device.GetTouch(4294967296uL) && lstObjMainCanvas[deviceIndex].transform.parent == scene.managerVR.objMove.transform)
+				//Translate the y axis movement of the stick to the speed gauge if:
+				//- Touchpad/stick is being touched, and no other buttons are pressed. This prevents conflicts with other controller combos that involve the stick's y axis. 8589934599 is the button mask for trigger, grip, and the menu and system buttons.
+				//- When menu is floating, is indicated by the parent of the menu canvas.
+				//- There is less than 0.5 of x axis movement, to prevent unintentionally adjusting the speed gauge while moving the x axis.
+				if (device.GetTouch(4294967296uL) && !device.GetPress(8589934599ul) && lstObjMainCanvas[deviceIndex].transform.parent == scene.managerVR.objMove.transform)
 				{
 					Vector2 axis = device.GetAxis();
 					if (-0.5f < axis.x && axis.x < 0.5f)
