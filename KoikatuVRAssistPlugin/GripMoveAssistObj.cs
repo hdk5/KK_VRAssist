@@ -41,7 +41,15 @@ namespace KoikatuVRAssistPlugin
 			float.MinValue
 		};
 
-		private const float floatingMenuDelta = 1.5f;
+		/// <summary>
+		/// Hold Grip for this amount of time in seconds to force display the menu
+		/// </summary>
+		private const float MenuDisplayTime = 0.5f;
+
+		/// <summary>
+		/// Hold Grip for this amount of time in seconds to detach the menu
+		/// </summary>
+		private const float MenuDetachTime = 1.5f;
 
 		private const float speedRate = 2f;
 
@@ -190,7 +198,7 @@ namespace KoikatuVRAssistPlugin
 					}	
 					
 					float gripHeldTime = currentTime - gripDownTime[deviceIndex];
-					if (gripHeldTime > 0.5f)
+					if (gripHeldTime > MenuDisplayTime)
 					{
 						//If the time since pressing down grip exceeds 0.5 seconds then make the menu visible so the use can see the menu while dragging it with the controller.
 						//And if the menu is currently detached, update the menu's position to make it temporarily follow the controller's movement while remained detached.
@@ -205,7 +213,7 @@ namespace KoikatuVRAssistPlugin
 						}
 					}
 					//If the menu is currently not detached and the time grip is held exceeds the defined threshold, detach the menu from the controller and attach it to the camera to make it floating.
-					if (gripHeldTime > floatingMenuDelta && !menuFloating)
+					if (gripHeldTime > MenuDetachTime && !menuFloating)
 					{
 						menuCanvas.transform.parent = scene.managerVR.objMove.transform;
 						gripDownTime[deviceIndex] = float.MaxValue;
