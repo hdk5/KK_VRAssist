@@ -21,6 +21,7 @@ namespace KoikatuVRAssistPlugin
 				try
 				{
 					harmony.PatchAll(typeof(GripMoveHook));
+					harmony.PatchAll(typeof(InputOverride));
 				}
 				catch (Exception)
 				{

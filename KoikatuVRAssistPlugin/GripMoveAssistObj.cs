@@ -195,13 +195,14 @@ namespace KoikatuVRAssistPlugin
 					{
 						gripDownTime[deviceIndex] = currentTime;
 						continue;
-					}	
-					
+					}
+
+					//If the time since pressing down grip exceeds 0.5 seconds then make the menu visible so the use can see the menu while dragging it with the controller.
+					//And if the menu is currently detached, update the menu's position to make it temporarily follow the controller's movement while remained detached.
+					//Prevent the game from toggling the menu from pressing grip as that will reverse the action in ths block. 
 					float gripHeldTime = currentTime - gripDownTime[deviceIndex];
 					if (gripHeldTime > MenuDisplayTime)
 					{
-						//If the time since pressing down grip exceeds 0.5 seconds then make the menu visible so the use can see the menu while dragging it with the controller.
-						//And if the menu is currently detached, update the menu's position to make it temporarily follow the controller's movement while remained detached.
 						if (!menuCanvas.activeSelf)
 						{
 							menuCanvas.SetActive(value: true);
@@ -211,12 +212,17 @@ namespace KoikatuVRAssistPlugin
 							menuCanvas.transform.position = canvasMoveMarker[deviceIndex].transform.position;
 							menuCanvas.transform.rotation = canvasMoveMarker[deviceIndex].transform.rotation;
 						}
+
+						InputOverride.SkipNextControllerAction(vRViveController, InputOverride.SkippableButtonKind.Grip);
 					}
 					//If the menu is currently not detached and the time grip is held exceeds the defined threshold, detach the menu from the controller and attach it to the camera to make it floating.
+					//Prevent the game from toggling the menu when holding grip as that would not be the intent of the user in this case
 					if (gripHeldTime > MenuDetachTime && !menuFloating)
 					{
 						menuCanvas.transform.parent = scene.managerVR.objMove.transform;
 						gripDownTime[deviceIndex] = float.MaxValue;
+
+						InputOverride.SkipNextControllerAction(vRViveController, InputOverride.SkippableButtonKind.Grip);
 					}
 				}
 			}
