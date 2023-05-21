@@ -1,6 +1,6 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
-using static KoikatuVRAssistPlugin.KoikatuVRAssistPlugin;
+using static KK_VRAssist.KK_VRAssist;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -20,7 +20,7 @@ using static KoikatuVRAssistPlugin.KoikatuVRAssistPlugin;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("9a51cfcb-a18a-428a-843a-fe7cf2eef523")]
+[assembly: Guid("78eb7439-531e-49ff-a144-27d80e1d0b65")]
 
 // Version information for an assembly consists of the following four values:
 //

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KoikatuVRAssistPlugin", "KoikatuVRAssistPlugin\KoikatuVRAssistPlugin.csproj", "{937B324B-F1B4-4127-9B8D-C63B0FEF177E}"
+Project("{56FD6F6C-16B0-4C1F-81F4-945195E777A8}") = "KK_VRAssist", "KK_VRAssist\KK_VRAssist.csproj", "{290516A3-93D0-48FC-90AD-507CADEADB1E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{937B324B-F1B4-4127-9B8D-C63B0FEF177E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{937B324B-F1B4-4127-9B8D-C63B0FEF177E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{937B324B-F1B4-4127-9B8D-C63B0FEF177E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{937B324B-F1B4-4127-9B8D-C63B0FEF177E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{290516A3-93D0-48FC-90AD-507CADEADB1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{290516A3-93D0-48FC-90AD-507CADEADB1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{290516A3-93D0-48FC-90AD-507CADEADB1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{290516A3-93D0-48FC-90AD-507CADEADB1E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {F79DE16C-2528-4446-8DC3-469AE58B7616}
+		SolutionGuid = {A40305C0-B8C7-4162-8F12-ED0479A72F18}
 	EndGlobalSection
 EndGlobal

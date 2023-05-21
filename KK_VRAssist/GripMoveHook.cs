@@ -1,6 +1,7 @@
 using HarmonyLib;
+using UnityEngine;
 
-namespace KoikatuVRAssistPlugin
+namespace KK_VRAssist
 {
 	public static class GripMoveHook
 	{

@@ -6,7 +6,7 @@ using HarmonyLib;
 using System.Reflection.Emit;
 using static VRViveController;
 
-namespace KoikatuVRAssistPlugin
+namespace KK_VRAssist
 {
 	/// <summary>
 	/// Shifts VR H scene's handling of controller press-down events to occur at press-up instead, and provides methods to intercept and bypass the handling.
@@ -93,7 +93,7 @@ namespace KoikatuVRAssistPlugin
 			}
 			else
 				return isPressUp;
-				
+
 		}
 		private static bool PressUpOrSkip(VRViveController callObject, EViveButtonKind button, int mode)
 		{

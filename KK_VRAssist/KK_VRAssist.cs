@@ -2,16 +2,16 @@ using BepInEx;
 using HarmonyLib;
 using System;
 
-namespace KoikatuVRAssistPlugin
+namespace KK_VRAssist
 {
 	[BepInPlugin(GUID, PluginName, Version)]
 	[BepInProcess("KoikatuVR")]
 	[BepInProcess("Koikatsu Party VR")]
-	public class KoikatuVRAssistPlugin : BaseUnityPlugin
+	public class KK_VRAssist : BaseUnityPlugin
 	{
-		public const string GUID = "KK_KoikatuVRAssistPlugin";
-		public const string Version = "1.1.0";
-		public const string PluginName = "KoikatuVRAssistPlugin";
+		public const string GUID = "KK_VRAssist";
+		public const string PluginName = "KK_VRAssist";
+		public const string Version = "1.2.0";
 
 		private void Awake()
 		{
@@ -25,10 +25,10 @@ namespace KoikatuVRAssistPlugin
 				}
 				catch (Exception)
 				{
-					harmony.UnpatchAll(harmony.Id);
+					harmony.UnpatchSelf();
 					Logger.LogError("Harmony patch failed, Nothing Patched.");
 					throw;
-				}		
+				}
 #if DEBUG
 				Logger.LogDebug("Hooks Patched");
 #endif

@@ -3,7 +3,7 @@ using System.Reflection;
 using UnityEngine;
 using HarmonyLib;
 
-namespace KoikatuVRAssistPlugin
+namespace KK_VRAssist
 {
 	public class GripMoveAssistObj : MonoBehaviour
 	{
@@ -69,7 +69,7 @@ namespace KoikatuVRAssistPlugin
 				{
 					Destroy(gripMoveAssistObj);
 					throw new MemberNotFoundException("lstObjMainCanvas is null when attempting to initialize GripMoveAssistObj");
-				}		
+				}
 			}
 
 			return gripMoveAssistObj;
@@ -149,12 +149,12 @@ namespace KoikatuVRAssistPlugin
 			for (int deviceIndex = 0; deviceIndex < 2; deviceIndex++)
 			{
 				GameObject menuCanvas = lstObjMainCanvas[deviceIndex];
-				VRViveController vRViveController = scrControllerManager.lstController[deviceIndex];	
+				VRViveController vRViveController = scrControllerManager.lstController[deviceIndex];
 				var trackedObj = vRViveController.GetComponent<SteamVR_TrackedObject>();
 				if (trackedObj.index == SteamVR_TrackedObject.EIndex.None)
 					continue;
 
-				SteamVR_Controller.Device device = SteamVR_Controller.Input((int)trackedObj.index);							
+				SteamVR_Controller.Device device = SteamVR_Controller.Input((int)trackedObj.index);
 				bool menuFloating = menuCanvas.transform.parent == scene.managerVR.objMove.transform;
 				//When grip is pressed, prepare a GameObject (canvasMoveMarker) to follow the controller, which can then be used later to update the position of the menu
 				if (scrControllerManager.IsPressDownSelectHand(VRViveController.EViveButtonKind.Grip, deviceIndex))
@@ -199,14 +199,14 @@ namespace KoikatuVRAssistPlugin
 
 					//If the time since pressing down grip exceeds 0.5 seconds then make the menu visible so the use can see the menu while dragging it with the controller.
 					//And if the menu is currently detached, update the menu's position to make it temporarily follow the controller's movement while remained detached.
-					//Prevent the game from toggling the menu from pressing grip as that will reverse the action in ths block. 
+					//Prevent the game from toggling the menu from pressing grip as that will reverse the action in ths block.
 					float gripHeldTime = currentTime - gripDownTime[deviceIndex];
 					if (gripHeldTime > MenuDisplayTime)
 					{
 						if (!menuCanvas.activeSelf)
 						{
 							menuCanvas.SetActive(value: true);
-						}			
+						}
 						if (menuFloating)
 						{
 							menuCanvas.transform.position = canvasMoveMarker[deviceIndex].transform.position;
